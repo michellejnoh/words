@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Roots</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1><a href="./">Word Roots</a></h1>
+    <p class="sub">Word breakdown and etymology</p>
+  </header>
+
+  <form id="search" autocomplete="off">
+    <input id="q" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" placeholder="Search an English word" aria-label="English word" autofocus>
+    <button type="submit">Search</button>
+  </form>
+
+  <div id="keybox" hidden>
+    <p>This site uses the Merriam-Webster Collegiate Dictionary API. Paste your free API key (from <a href="https://dictionaryapi.com/register/index" target="_blank" rel="noopener">dictionaryapi.com</a>) to start. It is saved only in this browser.</p>
+    <form id="keyform">
+      <input id="key" type="text" placeholder="Collegiate Dictionary API key" aria-label="API key">
+      <button type="submit">Save</button>
+    </form>
+  </div>
+
+  <div id="status" role="status"></div>
+  <article id="result"></article>
+
+  <footer>
+    <p>Definitions and etymology: <a href="https://www.merriam-webster.com" target="_blank" rel="noopener">Merriam-Webster’s Collegiate® Dictionary</a>. Word breakdown: matched against a reference list of English affixes and Latin and Greek roots.</p>
+    <p><a href="#" id="resetkey">Change API key</a></p>
+  </footer>
+</main>
+<script src="config.js"></script>
+<script src="morphemes.js"></script>
+<script src="words.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
