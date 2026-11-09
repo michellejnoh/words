@@ -2,4 +2,4 @@
 // so visitors don't have to enter one. Get a free key at
 // https://dictionaryapi.com/register/index
 // Note: anything in this file is public once it's on GitHub Pages.
-window.MW_KEY = "";
+window.MW_KEY = "284f6025-c460-4328-9a44-d849ec32e4ec";
