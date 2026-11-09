@@ -12,10 +12,10 @@ main { max-width: 680px; margin: 0 auto; padding: 64px 24px 48px; }
 
 a { color: #000; }
 
-header { margin-bottom: 32px; }
+header { margin-bottom: 28px; }
 h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
 h1 a { text-decoration: none; }
-.sub { color: #666; }
+.sub { color: #666; margin-bottom: 16px; }
 
 form { display: flex; gap: 8px; }
 input {
@@ -47,8 +47,8 @@ button:hover { background: #333; }
 #keybox { margin-top: 24px; padding: 16px; border: 1px solid #000; }
 #keybox p { margin-bottom: 12px; font-size: 14px; }
 
-#status { margin: 24px 0 0; color: #666; min-height: 1.5em; }
-#status button.link, .suggest button {
+.status { margin: 24px 0 0; color: #666; min-height: 1.5em; }
+.suggest button {
   background: none; color: #000; border: none; padding: 0;
   text-decoration: underline; font-size: inherit; cursor: pointer;
 }
@@ -91,7 +91,60 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid #000; font-s
 footer p { margin-bottom: 6px; }
 footer a { color: #666; }
 
+/* tabs */
+.tabs { display: flex; gap: 0; margin-top: 20px; border: 1px solid #000; }
+.tabs a {
+  flex: 1; text-align: center; padding: 10px 8px; text-decoration: none;
+  border-right: 1px solid #000; font-size: 15px;
+}
+.tabs a:last-child { border-right: none; }
+.tabs a.on { background: #000; color: #fff; }
+.tabs a:not(.on):hover { background: #f2f2f2; }
+
+/* French */
+.tenses { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; }
+.tense h3 { margin: 0 0 6px; font-size: 14px; }
+.tense ul { list-style: none; }
+.tense li { padding: 1px 0; }
+
+/* IPA */
+.ipa-box { position: sticky; top: 0; background: #fff; padding: 8px 0 4px; z-index: 2; }
+textarea {
+  width: 100%; font: inherit; font-size: 28px; line-height: 1.3; padding: 12px 14px;
+  border: 1px solid #000; border-radius: 0; resize: vertical; color: #000; background: #fff;
+  font-family: "Helvetica Neue", Helvetica, "Doulos SIL", "Charis SIL", "Segoe UI", Arial, sans-serif;
+}
+textarea:focus { outline: 2px solid #000; outline-offset: -2px; }
+.ipa-actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.ipa-actions button { height: 40px; }
+button.ghost { background: #fff; color: #000; }
+button.ghost:hover { background: #f2f2f2; }
+.status-inline { color: #666; font-size: 14px; }
+#ipa-name { min-height: 1.4em; margin-top: 6px; }
+.chart { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.chart table { border-collapse: collapse; font-size: 11px; }
+.chart th { font-weight: 400; color: #666; padding: 4px 4px; text-align: left; vertical-align: bottom; line-height: 1.2; }
+.chart tr + tr th { vertical-align: middle; white-space: normal; min-width: 64px; }
+.chart td { border: 1px solid #000; padding: 1px; white-space: nowrap; text-align: center; }
+.chart .k { min-width: 23px; width: 23px; height: 30px; padding: 0; margin: 0; font-size: 18px; border-color: transparent; }
+.chart .k:hover { border-color: #000; }
+.k {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; height: 36px; padding: 0 6px; margin: 1px;
+  background: #fff; color: #000; border: 1px solid #ccc; font-size: 20px;
+  font-family: "Helvetica Neue", Helvetica, "Doulos SIL", "Charis SIL", "Segoe UI", Arial, sans-serif;
+  vertical-align: middle;
+}
+.k:hover { background: #000; color: #fff; border-color: #000; }
+.k.empty { border-color: transparent; background: none; }
+.scroll-hint { display: none; }
+.keyrow { display: flex; flex-wrap: wrap; gap: 0; }
+.keyrow .k { min-width: 44px; height: 44px; }
+
 @media (max-width: 520px) {
+  .tenses { grid-template-columns: 1fr; }
+  .scroll-hint { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+  .tabs a { font-size: 13px; padding: 10px 4px; }
   main { padding-top: 40px; }
   .word { font-size: 34px; }
   .part { flex-basis: 100%; border-right: none; border-bottom: 1px solid #000; }

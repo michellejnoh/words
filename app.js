@@ -22,7 +22,7 @@
     if (!k) return;
     try { localStorage.setItem("mw_key", k); } catch (err) {}
     showKeyBox(false);
-    route();
+    if (q.value.trim()) search(q.value);
   });
   $("resetkey").addEventListener("click", function (e) {
     e.preventDefault();
@@ -42,7 +42,7 @@
   function syll(hw) { return String(hw || "").replace(/\*/g, "·"); }
   function link(w, label) {
     w = base(w);
-    return '<a href="#' + encodeURIComponent(w) + '">' + esc(label || w) + "</a>";
+    return '<a href="#en/' + encodeURIComponent(w) + '">' + esc(label || w) + "</a>";
   }
 
   // Render Merriam-Webster markup tokens as HTML
@@ -347,23 +347,25 @@
     });
   }
 
-  function route() {
-    var w = decodeURIComponent(location.hash.slice(1));
-    if (w) search(w); else { resultEl.innerHTML = ""; setStatus(""); }
+  function go(w) {
+    var h = "#en/" + encodeURIComponent(w);
+    if (location.hash === h) search(w); else location.hash = h;
   }
 
   $("search").addEventListener("submit", function (e) {
     e.preventDefault();
-    var w = q.value.trim().toLowerCase();
-    if (location.hash.slice(1) === encodeURIComponent(w)) search(w);
-    else location.hash = encodeURIComponent(w);
+    go(q.value.trim().toLowerCase());
   });
   statusEl.addEventListener("click", function (e) {
     var w = e.target.getAttribute && e.target.getAttribute("data-w");
-    if (w) location.hash = encodeURIComponent(w.toLowerCase());
+    if (w) go(w.toLowerCase());
   });
-  window.addEventListener("hashchange", function () { route(); window.scrollTo(0, 0); });
 
-  if (!getKey()) showKeyBox(true);
-  route();
+  // Called by the tab router in main.js
+  window.EN = {
+    show: function (w) {
+      if (!getKey()) showKeyBox(true);
+      if (w) search(w); else { resultEl.innerHTML = ""; setStatus(""); q.value = ""; }
+    }
+  };
 })();

@@ -3,40 +3,90 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Word Roots</title>
+<title>Words</title>
+<meta name="description" content="English word breakdowns and etymology, French verb conjugations, and a full IPA keyboard.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://michellejnoh.github.io/words/">
+<meta property="og:title" content="Words">
+<meta property="og:description" content="English word breakdowns and etymology, French verb conjugations, and a full IPA keyboard.">
+<meta property="og:image" content="https://michellejnoh.github.io/words/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Words: English roots, French verbs, IPA keyboard">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://michellejnoh.github.io/words/preview.png">
+
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
   <header>
-    <h1><a href="./">Word Roots</a></h1>
-    <p class="sub">Word breakdown and etymology</p>
+    <h1><a href="./">Words</a></h1>
+    <nav class="tabs" role="tablist">
+      <a href="#en" role="tab" data-tab="en">English words</a>
+      <a href="#fr" role="tab" data-tab="fr">French verbs</a>
+      <a href="#ipa" role="tab" data-tab="ipa">IPA keyboard</a>
+    </nav>
   </header>
 
-  <form id="search" autocomplete="off">
-    <input id="q" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" placeholder="Search an English word" aria-label="English word" autofocus>
-    <button type="submit">Search</button>
-  </form>
-
-  <div id="keybox" hidden>
-    <p>This site uses the Merriam-Webster Collegiate Dictionary API. Paste your free API key (from <a href="https://dictionaryapi.com/register/index" target="_blank" rel="noopener">dictionaryapi.com</a>) to start. It is saved only in this browser.</p>
-    <form id="keyform">
-      <input id="key" type="text" placeholder="Collegiate Dictionary API key" aria-label="API key">
-      <button type="submit">Save</button>
+  <!-- English -->
+  <div class="panel" id="panel-en" hidden>
+    <p class="sub">Word breakdown and etymology</p>
+    <form id="search" autocomplete="off">
+      <input id="q" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" placeholder="Search an English word" aria-label="English word">
+      <button type="submit">Search</button>
     </form>
+    <div id="keybox" hidden>
+      <p>This tab uses the Merriam-Webster Collegiate Dictionary API. Paste your free API key (from <a href="https://dictionaryapi.com/register/index" target="_blank" rel="noopener">dictionaryapi.com</a>) to start. It is saved only in this browser.</p>
+      <form id="keyform">
+        <input id="key" type="text" placeholder="Collegiate Dictionary API key" aria-label="API key">
+        <button type="submit">Save</button>
+      </form>
+    </div>
+    <div id="status" class="status" role="status"></div>
+    <article id="result"></article>
   </div>
 
-  <div id="status" role="status"></div>
-  <article id="result"></article>
+  <!-- French -->
+  <div class="panel" id="panel-fr" hidden>
+    <p class="sub">Conjugation in every tense</p>
+    <form id="fr-search" autocomplete="off">
+      <input id="fr-q" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" placeholder="Type a French verb, e.g. venir, se lever" aria-label="French verb" lang="fr">
+      <button type="submit">Conjugate</button>
+    </form>
+    <div id="fr-status" class="status" role="status"></div>
+    <article id="fr-result" lang="fr"></article>
+  </div>
+
+  <!-- IPA -->
+  <div class="panel" id="panel-ipa" hidden>
+    <p class="sub">Click symbols to type, then copy</p>
+    <div class="ipa-box">
+      <textarea id="ipa-text" rows="2" spellcheck="false" autocapitalize="off" aria-label="IPA text" placeholder="Your IPA appears here"></textarea>
+      <div class="ipa-actions">
+        <button type="button" id="ipa-copy">Copy</button>
+        <button type="button" id="ipa-back" class="ghost" aria-label="Delete last symbol">⌫</button>
+        <button type="button" id="ipa-clear" class="ghost">Clear</button>
+        <span id="ipa-msg" class="status-inline" role="status"></span>
+      </div>
+      <p id="ipa-name" class="note"></p>
+    </div>
+    <div id="ipa-keys"></div>
+  </div>
 
   <footer>
-    <p>Definitions and etymology: <a href="https://www.merriam-webster.com" target="_blank" rel="noopener">Merriam-Webster’s Collegiate® Dictionary</a>. Word breakdown: matched against a reference list of English affixes and Latin and Greek roots.</p>
-    <p><a href="#" id="resetkey">Change API key</a></p>
+    <p>English definitions and etymology: <a href="https://www.merriam-webster.com" target="_blank" rel="noopener">Merriam-Webster’s Collegiate® Dictionary</a>. Word breakdown: matched against a reference list of English affixes and Latin and Greek roots.</p>
+    <p>French conjugations: the Lefff lexicon (via french-verbs-lefff), with links to <a href="https://leconjugueur.lefigaro.fr/" target="_blank" rel="noopener">Le Conjugueur</a> for each verb. IPA keyboard: symbols of the official IPA chart, arranged after <a href="https://ipa.typeit.org/full/" target="_blank" rel="noopener">TypeIt</a>.</p>
+    <p><a href="#" id="resetkey">Change Merriam-Webster API key</a></p>
   </footer>
 </main>
 <script src="config.js"></script>
 <script src="morphemes.js"></script>
 <script src="words.js"></script>
 <script src="app.js"></script>
+<script src="fr.js"></script>
+<script src="ipa.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
