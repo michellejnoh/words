@@ -361,6 +361,8 @@
     if (w) go(w.toLowerCase());
   });
 
+  window.MW_UTIL = { mwText: mwText, esc: esc };
+
   // Called by the tab router in main.js
   window.EN = {
     show: function (w) {

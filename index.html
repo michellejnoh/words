@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Words</title>
-<meta name="description" content="English word breakdowns and etymology, French verb conjugations, and a full IPA keyboard.">
+<meta name="description" content="English word breakdowns, etymology and thesaurus, French verb conjugations, and a full IPA keyboard.">
 
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://michellejnoh.github.io/words/">
 <meta property="og:title" content="Words">
-<meta property="og:description" content="English word breakdowns and etymology, French verb conjugations, and a full IPA keyboard.">
+<meta property="og:description" content="English word breakdowns, etymology and thesaurus, French verb conjugations, and a full IPA keyboard.">
 <meta property="og:image" content="https://michellejnoh.github.io/words/preview.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -20,9 +20,14 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<script>if (/[?&]mini\b/.test(location.search)) document.documentElement.className = "mini";</script>
 <main>
   <header>
-    <h1><a href="./">Words</a></h1>
+    <div class="top">
+      <h1><a href="./">Words</a></h1>
+      <button type="button" id="float" class="ghost small" title="Open a small window that stays on top of other apps">Float</button>
+    </div>
+    <p id="float-msg" class="note" hidden></p>
     <nav class="tabs" role="tablist">
       <a href="#en" role="tab" data-tab="en">English words</a>
       <a href="#fr" role="tab" data-tab="fr">French verbs</a>
@@ -32,12 +37,15 @@
 
   <!-- English -->
   <div class="panel" id="panel-en" hidden>
-    <p class="sub">Word breakdown and etymology</p>
+    <nav class="subtabs">
+      <a href="#en" data-sub="en" class="on">Breakdown and etymology</a>
+      <a href="#th" data-sub="th">Thesaurus</a>
+    </nav>
     <form id="search" autocomplete="off">
       <input id="q" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" placeholder="Search an English word" aria-label="English word">
       <button type="submit">Search</button>
     </form>
-    <div id="keybox" hidden>
+    <div id="keybox" class="keybox" hidden>
       <p>This tab uses the Merriam-Webster Collegiate Dictionary API. Paste your free API key (from <a href="https://dictionaryapi.com/register/index" target="_blank" rel="noopener">dictionaryapi.com</a>) to start. It is saved only in this browser.</p>
       <form id="keyform">
         <input id="key" type="text" placeholder="Collegiate Dictionary API key" aria-label="API key">
@@ -46,6 +54,27 @@
     </div>
     <div id="status" class="status" role="status"></div>
     <article id="result"></article>
+  </div>
+
+  <!-- Thesaurus (part of the English tab) -->
+  <div class="panel" id="panel-th" hidden>
+    <nav class="subtabs">
+      <a href="#en" data-sub="en">Breakdown and etymology</a>
+      <a href="#th" data-sub="th" class="on">Thesaurus</a>
+    </nav>
+    <form id="th-search" autocomplete="off">
+      <input id="th-q" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" placeholder="Find synonyms and antonyms" aria-label="English word for thesaurus">
+      <button type="submit">Search</button>
+    </form>
+    <div id="th-keybox" class="keybox" hidden>
+      <p>The thesaurus uses your Merriam-Webster <b>Collegiate Thesaurus</b> key (sign in at <a href="https://dictionaryapi.com" target="_blank" rel="noopener">dictionaryapi.com</a> and open Keys; it is different from the dictionary key). Paste it here. It is saved only in this browser.</p>
+      <form id="th-keyform">
+        <input id="th-key" type="text" placeholder="Collegiate Thesaurus API key" aria-label="Thesaurus API key">
+        <button type="submit">Save</button>
+      </form>
+    </div>
+    <div id="th-status" class="status" role="status"></div>
+    <article id="th-result"></article>
   </div>
 
   <!-- French -->
@@ -78,15 +107,17 @@
   <footer>
     <p>English definitions and etymology: <a href="https://www.merriam-webster.com" target="_blank" rel="noopener">Merriam-Webster’s Collegiate® Dictionary</a>. Word breakdown: matched against a reference list of English affixes and Latin and Greek roots.</p>
     <p>French conjugations: the Lefff lexicon (via french-verbs-lefff), with links to <a href="https://leconjugueur.lefigaro.fr/" target="_blank" rel="noopener">Le Conjugueur</a> for each verb. IPA keyboard: symbols of the official IPA chart, arranged after <a href="https://ipa.typeit.org/full/" target="_blank" rel="noopener">TypeIt</a>.</p>
-    <p><a href="#" id="resetkey">Change Merriam-Webster API key</a></p>
+    <p><a href="#" id="resetkey">Change dictionary key</a> &nbsp;·&nbsp; <a href="#" id="th-resetkey">Change thesaurus key</a></p>
   </footer>
 </main>
 <script src="config.js"></script>
 <script src="morphemes.js"></script>
 <script src="words.js"></script>
 <script src="app.js"></script>
+<script src="th.js"></script>
 <script src="fr.js"></script>
 <script src="ipa.js"></script>
 <script src="main.js"></script>
+<script src="float.js"></script>
 </body>
 </html>
