@@ -107,6 +107,10 @@ button.small { font-size: 14px; height: 32px; padding: 0 14px; }
 .sense .ex { color: #666; margin-top: 2px; }
 .sense .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-top: 10px; }
 .sense .wl { margin-top: 2px; }
+#th-result .ant { display: none; }
+#th-result.show-ants .ant { display: block; }
+.toggle { display: flex; align-items: center; gap: 8px; margin-top: 32px; padding-top: 16px; border-top: 1px solid #000; cursor: pointer; font-size: 15px; }
+.toggle input { -webkit-appearance: checkbox; appearance: auto; flex: none; width: 18px; height: 18px; padding: 0; border: none; accent-color: #000; cursor: pointer; }
 
 /* tabs */
 .tabs { display: flex; gap: 0; margin-top: 20px; border: 1px solid #000; }

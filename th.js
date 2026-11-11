@@ -12,9 +12,9 @@
     ["sim_list", "Synonyms and similar words"],
     ["rel_list", "Related words"],
     ["phrase_list", "Phrases"],
-    ["near_list", "Near antonyms"],
-    ["opp_list", "Antonyms and near antonyms"],
-    ["ant_list", "Antonyms"]
+    ["near_list", "Near antonyms", 1],
+    ["opp_list", "Antonyms and near antonyms", 1],
+    ["ant_list", "Antonyms", 1]
   ];
 
   function getKey() {
@@ -30,6 +30,16 @@
     try { localStorage.setItem("mw_thes_key", k); } catch (err) {}
     showKeyBox(false);
     if (q.value.trim()) search(q.value);
+  });
+
+  function showAnts() {
+    try { return localStorage.getItem("th_ants") === "1"; } catch (e) { return false; }
+  }
+  function applyAnts() { resultEl.classList.toggle("show-ants", showAnts()); }
+  resultEl.addEventListener("change", function (e) {
+    if (e.target.id !== "th-ants") return;
+    try { localStorage.setItem("th_ants", e.target.checked ? "1" : "0"); } catch (err) {}
+    applyAnts();
   });
 
   function base(id) { return String(id || "").split(":")[0].toLowerCase(); }
@@ -76,7 +86,7 @@
           html += '<div class="sense"><p class="def">' + (e.shortdef.length > 1 ? (i + 1) + ". " : "") + U.esc(d) + "</p>";
           var syn = (e.meta.syns || [])[i] || [], ant = (e.meta.ants || [])[i] || [];
           if (syn.length) html += '<p class="lbl">Synonyms</p><p class="wl">' + syn.map(wordLink).join(", ") + "</p>";
-          if (ant.length) html += '<p class="lbl">Antonyms</p><p class="wl">' + ant.map(wordLink).join(", ") + "</p>";
+          if (ant.length) html += '<div class="ant"><p class="lbl">Antonyms</p><p class="wl">' + ant.map(wordLink).join(", ") + "</p></div>";
           html += "</div>";
         });
       }
@@ -90,14 +100,16 @@
         if (ex) html += '<p class="ex">' + ex + "</p>";
         LISTS.forEach(function (L) {
           var w = words(s[L[0]]);
-          if (w.length) html += '<p class="lbl">' + L[1] + '</p><p class="wl">' + w.map(wordLink).join(", ") + "</p>";
+          if (w.length) html += (L[2] ? '<div class="ant">' : "<div>") + '<p class="lbl">' + L[1] + '</p><p class="wl">' + w.map(wordLink).join(", ") + "</p></div>";
         });
         html += "</div>";
       });
       html += "</section>";
     });
+    html += '<label class="toggle"><input type="checkbox" id="th-ants"' + (showAnts() ? " checked" : "") + '> Show antonyms</label>';
     html += '<p class="note"><a href="' + MW_PAGE + encodeURIComponent(word) + '" target="_blank" rel="noopener">Full entry at Merriam-Webster Thesaurus</a></p>';
     resultEl.innerHTML = html;
+    applyAnts();
     return true;
   }
 
