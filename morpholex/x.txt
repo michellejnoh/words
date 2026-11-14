@@ -1,0 +1,9 @@
+xenon	=
+xenophobia	{(xeno)(phobe)>ia>}
+xenophobic	{(xeno)(phobe)}>ic>
+xerox	=
+xeroxed	{(xerox)}
+xeroxes	{(xerox)}
+xeroxing	{(xerox)}
+xylophone	{(xylo)(phon)}
+xylophones	{(xylo)(phon)}

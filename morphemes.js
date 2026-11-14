@@ -4,7 +4,7 @@
 
 window.MORPHEMES = {
   prefixes: {
-    "a": ["not, without", "Greek"],
+    "a": ["not, without (Greek); on, in (Old English)", "Greek / Old English"],
     "ab": ["away from", "Latin"],
     "abs": ["away from", "Latin"],
     "ad": ["to, toward", "Latin"],
@@ -197,7 +197,7 @@ window.MORPHEMES = {
     "ure": ["action, result", "Latin"],
     "ward": ["direction", "Old English"],
     "wise": ["in the manner of", "Old English"],
-    "y": ["full of; state", "Old English"]
+    "y": ["full of (in adjectives); state, condition (in nouns)", "Old English / Greek via Latin"]
   },
 
   roots: {
@@ -334,3 +334,79 @@ window.MORPHEMES = {
     "volv/volut": ["roll", "Latin"]
   }
 };
+
+// Additional meanings for morphemes as they are written in MorphoLex-en.
+// Forms are matched exactly. Ambiguous forms are left out on purpose.
+(function (M) {
+  var add = function (table, obj) { Object.keys(obj).forEach(function (k) { if (!table[k]) table[k] = obj[k]; }); };
+  add(M.prefixes, {
+    "cross": ["across", "English"], "back": ["back, behind", "Old English"], "su": ["under (assimilated form of sub-)", "Latin"],
+    "down": ["down", "Old English"], "centi": ["hundred; hundredth", "Latin"], "by": ["secondary, beside", "Old English"],
+    "o": ["against, toward (assimilated form of ob-)", "Latin"], "off": ["off, away", "Old English"], "du": ["two", "Latin"],
+    "sus": ["under, up from under", "Latin"], "half": ["half", "Old English"], "on": ["on, onward", "Old English"],
+    "quad": ["four", "Latin"], "sy": ["together (form of syn-)", "Greek"], "penta": ["five", "Greek"], "pent": ["five", "Greek"],
+    "hexa": ["six", "Greek"], "es": ["out (form of ex-)", "Latin via French"], "through": ["through", "Old English"],
+    "thru": ["through", "English"], "octo": ["eight", "Latin/Greek"], "juxta": ["beside, near", "Latin"], "demi": ["half", "French"],
+    "hepta": ["seven", "Greek"], "quint": ["five, fifth", "Latin"], "sexa": ["six", "Latin"], "septa": ["seven", "Latin"],
+    "dec": ["ten", "Greek"], "tetra": ["four", "Greek"], "duo": ["two", "Latin"], "quadro": ["four", "Latin"],
+    "ef": ["out (assimilated form of ex-)", "Latin"]
+  });
+  add(M.suffixes, {
+    "ium": ["noun ending; chemical element", "Latin"], "us": ["noun ending", "Latin"], "sis": ["process, condition", "Greek"],
+    "itude": ["state, quality", "Latin"], "ia": ["condition; place", "Latin/Greek"], "ine": ["relating to; chemical substance", "Latin"],
+    "et": ["small", "French"], "id": ["having the quality of", "Latin"], "ster": ["one who does or is", "Old English"],
+    "ice": ["act, quality", "Latin"], "esc": ["becoming", "Latin"], "ern": ["toward a direction", "Old English"],
+    "ette": ["small; female", "French"], "iac": ["relating to", "Greek"], "ide": ["chemical compound", "Greek via French"],
+    "ule": ["small", "Latin"], "itize": ["make", "Greek"], "teen": ["plus ten", "Old English"],
+    "illion": ["number (a power of a thousand)", "French"], "aire": ["one who", "French"], "ile": ["capable of; relating to", "Latin"],
+    "efy": ["make", "Latin"], "ade": ["action; product", "French"], "fold": ["times, multiplied by", "Old English"],
+    "eme": ["unit of structure", "Greek via French"], "itate": ["make, cause", "Latin"], "ivore": ["eating", "Latin"],
+    "anda": ["thing to be done", "Latin"], "ifer": ["bearing, carrying", "Latin"], "ard": ["one who (often negative)", "French"],
+    "itous": ["having the quality of", "Latin"], "icle": ["small", "Latin"], "acle": ["means; place", "Latin"],
+    "uity": ["state, quality", "Latin"], "fuge": ["fleeing; driving away", "Latin"], "uple": ["times, -fold", "Latin"],
+    "ast": ["one who", "Greek"], "iast": ["one who", "Greek"], "ally": ["in a way", "Latin + Old English"],
+    "issimo": ["most, very", "Italian"], "orial": ["relating to", "Latin"], "iatric": ["healing", "Greek"],
+    "astic": ["relating to", "Greek"], "most": ["most", "Old English"], "ress": ["female", "French"], "atics": ["study of", "Greek"],
+    "ation": ["action, process", "Latin"]
+  });
+  add(M.roots, {
+    "equi": ["equal", "Latin"], "patho": ["feeling, suffering, disease", "Greek"], "sist": ["stand, cause to stand", "Latin"],
+    "stitute": ["set up, place", "Latin"], "vive": ["live", "Latin"], "nomin": ["name", "Latin"], "socio": ["companion, society", "Latin"],
+    "electr": ["amber; electricity", "Greek"], "electro": ["amber; electricity", "Greek"], "volve": ["roll", "Latin"],
+    "ceive": ["take", "Latin via French"], "gener": ["birth, kind", "Latin"], "prehend": ["grasp, seize", "Latin"],
+    "philo": ["loving", "Greek"], "hibit": ["hold", "Latin"], "podo": ["foot", "Greek"], "litera": ["letter", "Latin"],
+    "hydro": ["water", "Greek"], "ann": ["year", "Latin"], "trude": ["thrust, push", "Latin"], "clude": ["close, shut", "Latin"],
+    "crimin": ["crime, accusation", "Latin"], "pract": ["do, practice", "Greek"], "ordin": ["order, row", "Latin"],
+    "vacu": ["empty", "Latin"], "thermo": ["heat", "Greek"], "popul": ["people", "Latin"], "chrono": ["time", "Greek"],
+    "sume": ["take", "Latin"], "sono": ["sound", "Latin"], "communic": ["share, make common", "Latin"], "rog": ["ask", "Latin"],
+    "syllab": ["syllable (literally 'taken together')", "Greek"], "cide": ["kill; cut", "Latin"], "tech": ["art, skill", "Greek"],
+    "astro": ["star", "Greek"], "numer": ["number", "Latin"], "judic": ["judge, judgment", "Latin"], "aero": ["air", "Greek"],
+    "prob": ["prove, test", "Latin"], "termin": ["boundary, end", "Latin"], "regul": ["rule", "Latin"], "domin": ["lord, master", "Latin"],
+    "semble": ["together; like", "Latin via French"], "satis": ["enough", "Latin"], "oper": ["work", "Latin"], "vene": ["come", "Latin"],
+    "cise": ["cut", "Latin"], "val": ["be strong, be worth", "Latin"], "greg": ["flock, herd", "Latin"], "memor": ["mindful, remember", "Latin"],
+    "calcul": ["pebble; reckon", "Latin"], "anthropo": ["human", "Greek"], "gnose": ["know", "Greek"], "militar": ["soldier", "Latin"],
+    "liqu": ["be fluid", "Latin"], "thes": ["placing, putting", "Greek"], "flate": ["blow", "Latin"], "propri": ["one's own", "Latin"],
+    "thet": ["placed, put", "Greek"], "vide": ["see", "Latin"], "myst": ["secret; initiated", "Greek"], "harmon": ["joining, agreement", "Greek"],
+    "cline": ["lean, slope", "Latin"], "therap": ["treatment, care", "Greek"], "sanct": ["holy", "Latin"], "junct": ["join", "Latin"],
+    "cosmo": ["world, order", "Greek"], "journ": ["day", "Latin via French"], "sacro": ["sacred", "Latin"], "anim": ["life, breath, mind", "Latin"],
+    "separ": ["separate", "Latin"], "gon": ["angle", "Greek"], "vail": ["be strong, be worth", "Latin via French"], "rect": ["straight, right", "Latin"],
+    "prud": ["foreseeing", "Latin"], "simil": ["like", "Latin"], "picto": ["painted", "Latin"], "neuro": ["nerve", "Greek"],
+    "corpor": ["body", "Latin"], "lumin": ["light", "Latin"], "secute": ["follow", "Latin"], "preci": ["price, value", "Latin"],
+    "cert": ["sure", "Latin"], "semin": ["seed", "Latin"], "neutr": ["neither", "Latin"], "mechan": ["machine, device", "Greek"],
+    "feder": ["league, treaty", "Latin"], "econom": ["household management", "Greek"], "concile": ["bring together", "Latin"],
+    "venge": ["avenge, punish", "Latin via French"], "herit": ["heir", "Latin"], "celer": ["swift", "Latin"], "bol": ["throw", "Greek"],
+    "sperse": ["scatter", "Latin"], "plement": ["fill", "Latin"], "toler": ["bear, endure", "Latin"], "toxico": ["poison", "Greek"],
+    "initi": ["beginning", "Latin"], "flor": ["flower", "Latin"], "radic": ["root", "Latin"], "cracy": ["rule, power", "Greek"],
+    "ortho": ["straight, correct", "Greek"], "plode": ["clap, burst", "Latin"], "frig": ["cold", "Latin"], "chlor": ["green", "Greek"],
+    "spectr": ["appearance, image", "Latin"], "aggress": ["attack", "Latin"], "veri": ["true", "Latin"], "theor": ["looking at, considering", "Greek"],
+    "mand": ["order, entrust", "Latin"], "legitim": ["lawful", "Latin"], "imit": ["copy", "Latin"], "fratern": ["brother", "Latin"],
+    "dign": ["worthy", "Latin"], "decim": ["tenth", "Latin"], "caut": ["careful", "Latin"], "barbar": ["foreign", "Greek"],
+    "sorb": ["suck in", "Latin"], "senti": ["feel", "Latin"], "cumul": ["heap", "Latin"], "naut": ["sailor, ship", "Greek"],
+    "tyran": ["absolute ruler", "Greek"], "penetr": ["pierce, enter", "Latin"], "ov": ["egg", "Latin"], "pacif": ["peace", "Latin"],
+    "necess": ["unavoidable", "Latin"], "foc": ["hearth, center", "Latin"], "cens": ["assess, judge", "Latin"], "somn": ["sleep", "Latin"],
+    "ethn": ["nation, people", "Greek"], "derm": ["skin", "Greek"], "evangel": ["good news", "Greek"], "psycho": ["mind, soul", "Greek"],
+    "demo": ["people", "Greek"], "tele": ["far", "Greek"], "log": ["word, reason, study", "Greek"], "phon": ["sound, voice", "Greek"],
+    "graph": ["write, draw", "Greek"], "geo": ["earth", "Greek"], "bio": ["life", "Greek"], "lingu": ["tongue, language", "Latin"],
+    "spect": ["look", "Latin"], "struct": ["build", "Latin"], "dict": ["say, speak", "Latin"], "port": ["carry", "Latin"], "cred": ["believe", "Latin"]
+  });
+})(window.MORPHEMES);

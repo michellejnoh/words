@@ -83,113 +83,180 @@
     });
   }
 
-  /* ---------- word breakdown ---------- */
-  var ROOTS = [];
+  /* ---------- word breakdown (MorphoLex-en) ---------- */
+  // Each line of morpholex/<letter>.txt is "word<TAB>segmentation".
+  // Segmentation notation: <prefix<  (root)  >suffix>  and { } for groups.
+  // "=" means the word is a single root.
+  var ROOTGLOSS = {};
   Object.keys(M.roots).forEach(function (k) {
-    k.split("/").forEach(function (v) { ROOTS.push({ v: v, key: k, gloss: M.roots[k][0], origin: M.roots[k][1] }); });
+    k.split("/").forEach(function (v) { if (!ROOTGLOSS[v]) ROOTGLOSS[v] = M.roots[k]; });
   });
-  ROOTS.sort(function (a, b) { return b.v.length - a.v.length; });
-  var PRE = Object.keys(M.prefixes), SUF = Object.keys(M.suffixes);
-  var FINAL = ["s", "es", "est", "ed"];
+  ["bio", "tele", "geo", "auto", "micro", "macro", "neo", "proto", "pseudo", "poly", "mono", "pan"].forEach(function (p) {
+    if (!ROOTGLOSS[p] && M.prefixes[p]) ROOTGLOSS[p] = M.prefixes[p];
+  });
 
-  function restores(stem, hasSuffix) {
-    var f = [stem];
-    if (hasSuffix) {
-      if (/i$/.test(stem)) f.push(stem.slice(0, -1) + "y");
-      f.push(stem + "e");
-      if (/([bdfglmnprt])\1$/.test(stem)) f.push(stem.slice(0, -1));
+  var SEG = {}, segLoading = {};
+  function loadSeg(letter) {
+    if (SEG[letter]) return Promise.resolve(SEG[letter]);
+    if (segLoading[letter]) return segLoading[letter];
+    segLoading[letter] = fetch("morpholex/" + letter + ".txt").then(function (r) {
+      if (!r.ok) throw new Error("seg");
+      return r.text();
+    }).then(function (t) {
+      var map = {};
+      t.split("\n").forEach(function (line) {
+        var i = line.indexOf("\t");
+        if (i > 0) map[line.slice(0, i)] = line.slice(i + 1);
+      });
+      SEG[letter] = map;
+      return map;
+    }).catch(function (e) { segLoading[letter] = null; throw e; });
+    return segLoading[letter];
+  }
+
+  // Inflected forms that may not be listed: try the base form
+  var INFL = [["ies", "y", "s"], ["ied", "y", "ed"], ["ier", "y", "er"], ["iest", "y", "est"], ["ing", "", "ing"], ["ing", "e", "ing"],
+    ["ed", "", "ed"], ["ed", "e", "ed"], ["es", "", "es"], ["s", "", "s"], ["er", "", "er"], ["er", "e", "er"], ["est", "", "est"], ["est", "e", "est"]];
+  function lookupSeg(word) {
+    var letter = word[0];
+    if (!/[a-z]/.test(letter)) return Promise.resolve(null);
+    return loadSeg(letter).then(function (map) {
+      var direct = map[word];
+      for (var i = 0; i < INFL.length; i++) {
+        var end = INFL[i][0];
+        if (word.length > end.length + 2 && word.slice(-end.length) === end) {
+          var stem = word.slice(0, -end.length);
+          var cands = [stem + INFL[i][1]];
+          if (/([bdfgklmnprtvz])\1$/.test(stem)) cands.push(stem.slice(0, -1));
+          for (var j = 0; j < cands.length; j++) {
+            var c = cands[j];
+            if (!map[c]) continue;
+            // walked = walk + -ed only if the database analyses both the same way
+            if (!direct || shape(parseSegm(direct, word), true) === shape(parseSegm(map[c], c), true))
+              return { word: c, segm: map[c], infl: INFL[i][2] };
+          }
+        }
+      }
+      return direct ? { word: word, segm: direct, infl: "" } : null;
+    });
+  }
+
+  function parseSegm(s, word) {
+    if (s === "=") return { g: true, kids: [{ t: "root", f: word }] };
+    var stack = [{ g: true, kids: [] }], i = 0, j;
+    while (i < s.length) {
+      var ch = s[i], top = stack[stack.length - 1];
+      if (ch === "{") { var g = { g: true, kids: [] }; top.kids.push(g); stack.push(g); i++; }
+      else if (ch === "}") { if (stack.length > 1) stack.pop(); i++; }
+      else if (ch === "<") { j = s.indexOf("<", i + 1); top.kids.push({ t: "prefix", f: s.slice(i + 1, j) }); i = j + 1; }
+      else if (ch === ">") { j = s.indexOf(">", i + 1); top.kids.push({ t: "suffix", f: s.slice(i + 1, j) }); i = j + 1; }
+      else if (ch === "(") { j = s.indexOf(")", i + 1); top.kids.push({ t: "root", f: s.slice(i + 1, j) }); i = j + 1; }
+      else i++;
+    }
+    var tree = stack[0];
+    while (tree.kids.length === 1 && tree.kids[0].g) tree = tree.kids[0];
+    return tree;
+  }
+
+  function flatten(node, groupOf, out) {
+    node.kids.forEach(function (k) {
+      if (k.g) flatten(k, k, out);
+      else { k.group = groupOf; out.push(k); }
+    });
+    return out;
+  }
+  function shape(node, top) {
+    var s = node.kids.map(function (k) {
+      return k.g ? shape(k, false) : k.t === "prefix" ? k.f + "-" : k.t === "suffix" ? "-" + k.f : k.f;
+    }).join(" + ");
+    return top || node.kids.length < 2 ? s : "[" + s + "]";
+  }
+
+  // Concatenations of each bracketed group, e.g. {<trans<(port)} -> "transport"
+  function groupWords(node, out) {
+    node.kids.forEach(function (k) { if (k.g) groupWords(k, out); });
+    out.push(node.kids.map(function surface(k) { return k.g ? k.kids.map(surface).join("") : k.f; }).join(""));
+    return out;
+  }
+
+  // MorphoLex writes some morphemes under one label: <im< is the negative prefix
+  // in any spelling (in-, im-, il-, ir-), <in< is "in, into", >able> also covers -ible.
+  var LABELS = {
+    prefix: { im: { gloss: ["not", "Latin"], spell: ["im", "il", "ir", "in", "i"] }, "in": { gloss: ["in, into, on", "Latin"], spell: ["im", "il", "ir", "in"] } },
+    suffix: { able: { spell: ["ible", "able", "ble"] }, ion: { spell: ["ation", "ition", "ution", "tion", "sion", "ion"] } }
+  };
+  // Prefixes whose last letter changes to match the next sound: ad- -> af-fect, ob- -> op-pose
+  var ASSIM = { a: ["to, toward (form of ad-)", "Latin"], o: ["against, toward (form of ob-)", "Latin"],
+    su: ["under (form of sub-)", "Latin"], e: ["out (form of ex-)", "Latin"] };
+  function assimilated(f, word) {
+    var n = f.length, c = word[n];
+    if (f === "co") {
+      var m = word.match(/^(com|con|col|cor)/);
+      return { spell: m ? m[1] : "co", gloss: ["together, with", "Latin"] };
+    }
+    if (ASSIM[f] && c && /[bcdfgklmnprst]/.test(c) && word[n + 1] === c) return { spell: f + c, gloss: ASSIM[f] };
+    return null;
+  }
+
+  function spelled(t, f, word, prev) {
+    var L = LABELS[t] && LABELS[t][f];
+    if (!L) return f;
+    for (var i = 0; i < L.spell.length; i++) {
+      var sp = L.spell[i];
+      if (t === "prefix" && word.indexOf(sp) === 0) return sp;
+      // the spelling that actually follows the previous part: port+ation, struct+ion
+      if (t === "suffix" && word.indexOf((prev || "") + sp) >= 0) return sp;
     }
     return f;
   }
 
-  function findRoot(forms) {
-    for (var i = 0; i < ROOTS.length; i++) {
-      var r = ROOTS[i];
-      for (var j = 0; j < forms.length; j++) {
-        var f = forms[j];
-        if (f === r.v) return { r: r, score: 3 };
-        if (r.v.length >= 3 && f.indexOf(r.v) === 0 && f.length - r.v.length <= 2) return { r: r, score: 2 };
+  function describeParts(parts, word) {
+    return parts.map(function (p, idx) {
+      if (p.t === "prefix") {
+        // only the first prefix touches the start of the word
+        var as = idx === 0 ? assimilated(p.f, word) : null;
+        var L = LABELS.prefix[p.f], pg = (as && as.gloss) || (L && L.gloss) || M.prefixes[p.f];
+        var form = as ? as.spell : idx === 0 ? spelled("prefix", p.f, word) : p.f;
+        return { form: form + "-", type: "prefix", gloss: pg ? pg[0] : "", origin: pg ? pg[1] : "" };
       }
-    }
-    return null;
+      if (p.t === "suffix") {
+        var sg = M.suffixes[p.f];
+        var prev = idx > 0 ? parts[idx - 1].f : "";
+        return { form: "-" + (p.infl ? p.f : spelled("suffix", p.f, word, prev)), type: p.infl ? "inflection" : "suffix", gloss: sg ? sg[0] : "", origin: sg ? sg[1] : "" };
+      }
+      var isWord = WORDS.has(p.f);
+      var rg = ROOTGLOSS[p.f];
+      // A root that is also an everyday English word only gets a Latin/Greek meaning
+      // when a prefix or a bound (non-word) root sits right next to it, as in trans- + port.
+      var latinate = !isWord || (p.group && p.group.kids.some(function (k) {
+        return k !== p && !k.g && (k.t === "prefix" || (k.t === "root" && !WORDS.has(k.f)));
+      }));
+      if (rg && latinate) return { form: p.f, type: "root", gloss: rg[0], origin: rg[1] };
+      if (isWord) return { form: p.f, type: latinate ? "root" : "base word", gloss: "", origin: "", link: p.f };
+      return { form: p.f, type: "root", gloss: "", origin: "" };
+    });
   }
 
-  function weight(a) { return a.length >= 3 ? 1 : a.length === 2 ? 0.6 : 0.3; }
-
-  function analyze(word, ctx) {
-    var cands = [];
-    function sufs(core, ss, pres, d) {
-      cands.push({ pre: pres, stem: core, suf: ss });
-      if (d >= 3) return;
-      SUF.forEach(function (s) {
-        if (core.length - s.length >= 3 && core.slice(-s.length) === s) sufs(core.slice(0, -s.length), [s].concat(ss), pres, d + 1);
-      });
-    }
-    function pres(rest, ps, d) {
-      sufs(rest, [], ps, 0);
-      if (d >= 2) return;
-      PRE.forEach(function (p) {
-        if (rest.length - p.length >= 3 && rest.indexOf(p) === 0) pres(rest.slice(p.length), ps.concat(p), d + 1);
-      });
-    }
-    pres(word, [], 0);
-
-    var best = null;
-    cands.forEach(function (c) {
-      var n = c.pre.length + c.suf.length;
-      // inflectional endings can only come last
-      for (var k = 0; k < c.suf.length - 1; k++) if (FINAL.indexOf(c.suf[k]) >= 0) return;
-      var forms = restores(c.stem, c.suf.length > 0);
-      var known = null;
-      if (n) forms.forEach(function (f) { if (!known && f !== word && (WORDS.has(f) || ctx.known.has(f))) known = f; });
-      var root = findRoot(forms);
-      var s = n ? 0 : 0.5;
-      c.pre.forEach(function (p) { s += weight(p) + (ctx.tokens.indexOf(p + "-") >= 0 ? 2 : 0); });
-      c.suf.forEach(function (x) { s += weight(x) + (ctx.tokens.indexOf("-" + x) >= 0 ? 2 : 0); });
-      if (known) s += 3 + 0.1 * known.length;
-      if (root) s += root.score;
-      if (n && !known && !root) s -= c.stem.length < 5 ? 2 : 0.4 * n;
-      if (n && (c.pre.some(function (p) { return p.length === 1; }) || c.suf.some(function (x) { return x.length === 1; })) && !known && !root) s -= 2;
-      c.score = s; c.known = known; c.root = root; c.n = n;
-      if (!best || s > best.score || (s === best.score && n < best.n)) best = c;
-    });
-
-    if (ctx.nonDerived) best = cands[0]; // M-W lists no internal parts: keep the word whole
-
-    // A whole word that is a root plus an ending, e.g. hap + -y
-    if (best.n === 0 && best.root && best.root.score === 2 && !ctx.nonDerived) {
-      var rest = word.slice(best.root.r.v.length);
-      if (rest[0] === best.root.r.v.slice(-1) && rest.length > 1) rest = rest.slice(1);
-      if (M.suffixes[rest]) best = { pre: [], stem: best.root.r.v, suf: [rest], root: { r: best.root.r, score: 3 }, known: null, n: 1 };
-    }
-    return best;
-  }
-
-  function partsHTML(c, word) {
-    var parts = [];
-    c.pre.forEach(function (p) {
-      parts.push({ form: p + "-", type: "prefix", gloss: M.prefixes[p][0], origin: M.prefixes[p][1] });
-    });
-    var stemType = c.root ? "root" : c.known ? "base" : "base";
-    var stemGloss = c.root ? c.root.r.gloss : "";
-    var stemOrigin = c.root ? c.root.r.origin + (c.root.r.key.indexOf("/") > 0 ? " · also " + c.root.r.key.split("/").filter(function (v) { return v !== c.root.r.v; }).join(", ") : "") : "";
-    var stemLabel = c.n === 0 ? word : c.stem;
-    var stemLink = c.known && c.known !== word ? c.known : null;
-    parts.push({
-      form: stemLabel, type: stemType, gloss: stemGloss, origin: stemOrigin,
-      extra: stemLink && stemLink !== c.stem ? "from " + link(stemLink) : stemLink ? link(stemLink, "look up") : ""
-    });
-    c.suf.forEach(function (s) {
-      parts.push({ form: "-" + s, type: "suffix", gloss: M.suffixes[s][0], origin: M.suffixes[s][1] });
-    });
-
-    var html = '<div class="parts">' + parts.map(function (p) {
+  function breakdownHTML(found, word) {
+    var tree = parseSegm(found.segm, found.word);
+    var parts = flatten(tree, tree, []);
+    if (found.infl) parts.push({ t: "suffix", f: found.infl, infl: true });
+    var d = describeParts(parts, found.word);
+    var html = '<div class="parts">' + d.map(function (p) {
       return '<div class="part"><div class="type">' + p.type + '</div><div class="form">' + esc(p.form) + "</div>" +
         (p.gloss ? '<div class="gloss">' + esc(p.gloss) + "</div>" : "") +
         (p.origin ? '<div class="origin">' + esc(p.origin) + "</div>" : "") +
-        (p.extra ? '<div class="origin">' + p.extra + "</div>" : "") + "</div>";
+        (p.link && p.link !== word ? '<div class="origin">' + link(p.link, "look up") + "</div>" : "") + "</div>";
     }).join("") + "</div>";
-    if (parts.length > 1) html += '<p class="formula">' + parts.map(function (p) { return esc(p.form); }).join(" + ") + "</p>";
+    if (d.length > 1) {
+      var k = 0;
+      (function relabel(node) { node.kids.forEach(function (n) { if (n.g) relabel(n); else { var f = d[k++].form; n.f = f.replace(/^-|-$/g, ""); } }); })(tree);
+      var sh = shape(tree, true) + (found.infl ? " + -" + found.infl : "");
+      html += '<p class="formula">' + esc(sh) + "</p>";
+    } else {
+      html += '<p class="note">In modern English this word is a single morpheme: it isn’t divided into smaller meaningful parts. Its older parts, if any, are under Etymology.</p>';
+    }
+    if (found.infl) html += '<p class="note">-' + esc(found.infl) + " is a grammatical ending added to <i>" + esc(found.word) + "</i>.</p>";
     return html;
   }
 
@@ -224,31 +291,15 @@
     var etyEntries = main.filter(function (e) { return e.et; });
     var etyTexts = [];
     etyEntries.forEach(function (e) { etyTexts = etyTexts.concat(etParts(e.et)); });
-    var raw = etyTexts.join(" ");
-    var tokens = [];
-    raw.replace(/\{it\}([^{}]+)\{\/it\}/g, function (_, a) { tokens.push(a.toLowerCase().trim()); });
-    raw.replace(/\{(?:et_link|d_link|mat|a_link)\|([^|}]+)/g, function (_, a) { tokens.push(base(a)); });
-
-    var known = new Set();
-    entries.forEach(function (e) { known.add(base(e.meta.id)); (e.meta.stems || []).forEach(function (s) { known.add(s); }); });
-    known.delete(word);
-
-    var ctx = {
-      tokens: tokens, known: known,
-      nonDerived: word === headBase && etyTexts.length > 0 && raw.indexOf("+") < 0 &&
-        !tokens.some(function (t) { return /^-|-$/.test(t); }) && tokens.indexOf(word) < 0 && raw.indexOf("{et_link") < 0
-    };
-    var c = analyze(word, ctx);
 
     var html = "";
     html += '<div class="word">' + esc(display) + "</div>";
     html += '<div class="meta">' + [fl ? '<span class="fl">' + esc(fl) + "</span>" : "", pron ? "\\" + esc(pron) + "\\" : ""].filter(Boolean).join(" &nbsp; ") + "</div>";
 
-    // Breakdown
-    html += "<section><h2>Word breakdown</h2>" + partsHTML(c, word);
+    // Breakdown (filled in once the MorphoLex file for this letter has loaded)
+    html += '<section><h2>Word breakdown</h2><div id="breakdown"><p class="note">Loading…</p></div>';
     var comps = mwComponents(etyTexts);
     if (comps.length) html += '<p class="note">Parts named in Merriam-Webster’s etymology: ' + comps.map(mwText).join("; ") + "</p>";
-    else if (c.n === 0 && ctx.nonDerived) html += '<p class="note">Merriam-Webster’s etymology doesn’t divide this word into English parts. See its history below.</p>';
     html += "</section>";
 
     // Etymology
@@ -264,32 +315,84 @@
     }
     html += "</section>";
 
-    // Definitions
+    // Definitions, with Merriam-Webster's example sentences
     html += "<section><h2>Definitions</h2>";
     main.forEach(function (e) {
       if (main.length > 1) html += "<h3>" + esc(clean(e.hwi.hw)) + ' <span class="fl">' + esc(e.fl || "") + "</span></h3>";
       if (word !== base(e.meta.id)) html += '<p class="note">Listed under ' + link(e.meta.id) + " (" + esc(e.fl || "") + "):</p>";
-      if (e.shortdef && e.shortdef.length) html += '<ol class="defs">' + e.shortdef.map(function (d) { return "<li>" + esc(d) + "</li>"; }).join("") + "</ol>";
+      html += definitionsHTML(e);
     });
     html += '<p class="note"><a href="' + MW_PAGE + encodeURIComponent(word) + '" target="_blank" rel="noopener">Full entry at Merriam-Webster</a></p></section>';
 
     resultEl.innerHTML = html;
 
-    if (!etyEntries.length) loadBaseEtymology(word, headBase, c, entries);
+    var box = $("breakdown");
+    lookupSeg(word).then(function (found) {
+      if (!document.body.contains(box)) return;
+      if (found) {
+        box.innerHTML = breakdownHTML(found, word) +
+          '<p class="note">Breakdown: MorphoLex-en (Sánchez-Gutiérrez et al., 2018). Part meanings are general meanings.</p>';
+      } else {
+        box.innerHTML = '<p class="note">This word isn’t in the MorphoLex-en database, so there’s no verified breakdown for it.' +
+          (comps.length ? "" : " Its history is under Etymology.") + "</p>";
+      }
+      if (!etyEntries.length) loadBaseEtymology(word, headBase, found, entries);
+    }).catch(function () {
+      if (document.body.contains(box)) box.innerHTML = '<p class="note">Couldn’t load the breakdown. Try again.</p>';
+      if (!etyEntries.length) loadBaseEtymology(word, headBase, null, entries);
+    });
     return true;
   }
 
-  function loadBaseEtymology(word, headBase, c, entries) {
+  // Senses from the full entry: definition text plus example sentences ("vis")
+  var MAX_SENSES = 8;
+  function definitionsHTML(e) {
+    var senses = [];
+    (e.def || []).forEach(function (d) {
+      (d.sseq || []).forEach(function (seq) {
+        seq.forEach(function (item) {
+          if (item[0] === "sense") senses.push(item[1]);
+          else if (item[0] === "bs" && item[1] && item[1].sense) senses.push(item[1].sense);
+          else if (item[0] === "pseq") (item[1] || []).forEach(function (p) { if (p[0] === "sense") senses.push(p[1]); });
+        });
+      });
+    });
+    if (!senses.length) {
+      return (e.shortdef && e.shortdef.length) ?
+        '<ol class="defs">' + e.shortdef.map(function (d) { return "<li>" + esc(d) + "</li>"; }).join("") + "</ol>" : "";
+    }
+    var html = '<ul class="senses">', shown = 0;
+    senses.forEach(function (s) {
+      var text = "", ex = [];
+      (s.dt || []).forEach(function (d) {
+        if (d[0] === "text") text += d[1];
+        else if (d[0] === "vis") (d[1] || []).forEach(function (v) { ex.push(v.t); });
+        else if (d[0] === "uns") (d[1] || []).forEach(function (u) {
+          (u || []).forEach(function (x) { if (x[0] === "vis") (x[1] || []).forEach(function (v) { ex.push(v.t); }); });
+        });
+      });
+      text = mwText(text);
+      if (!text || shown >= MAX_SENSES) return;
+      shown++;
+      html += '<li><span class="sn">' + esc(s.sn || "") + '</span><div class="sd"><p>' + text + "</p>" +
+        ex.slice(0, 2).map(function (t) { return '<p class="ex">' + mwText(t) + "</p>"; }).join("") + "</div></li>";
+    });
+    html += "</ul>";
+    if (senses.length > shown) html += '<p class="note">' + (senses.length - shown) + " more senses in the full entry.</p>";
+    return html;
+  }
+
+  function loadBaseEtymology(word, headBase, found, entries) {
     var box = $("baseety");
+    if (!box) return;
     var cands = [];
     if (headBase !== word) cands.push(headBase);
-    // strip endings one at a time: transportation -> transport
-    for (var i = c.suf.length - 1; i >= 0; i--) {
-      var w0 = c.pre.join("") + c.stem + c.suf.slice(0, i).join("");
-      restores(w0, true).forEach(function (f) { if (WORDS.has(f)) cands.push(f); });
+    if (found) {
+      if (found.word !== word) cands.push(found.word);
+      var tree = parseSegm(found.segm, found.word);
+      groupWords(tree, []).reverse().forEach(function (w) { if (WORDS.has(w)) cands.push(w); });
+      flatten(tree, tree, []).forEach(function (p) { if (p.t === "root" && WORDS.has(p.f)) cands.push(p.f); });
     }
-    if (c.known) cands.push(c.known);
-    if (c.pre.length) restores(c.stem, c.suf.length > 0).forEach(function (f) { if (WORDS.has(f)) cands.push(f); });
     cands = cands.filter(function (w, i) { return cands.indexOf(w) === i && w !== word; });
 
     function done(html) { if (box && document.body.contains(box)) box.innerHTML = html; }
